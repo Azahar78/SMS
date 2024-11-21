@@ -8,7 +8,7 @@ import com.sms.payload.TeacherResponse;
 
 public interface ITeacherService {
 
-	Boolean registerTeacher(TeacherRequest teacherRequest) throws Exception;
+	TeacherResponse registerTeacher(TeacherRequest teacherRequest, Integer schoolId) throws Exception;
 	TeacherResponse getTeacher(Integer teacherId)throws Exception;
 	Teacher getTeacherById(Integer teacherId);
 	List<TeacherResponse> getAllTeachers();

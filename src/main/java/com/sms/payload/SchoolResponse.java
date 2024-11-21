@@ -1,5 +1,7 @@
 package com.sms.payload;
 
+import java.time.LocalDate;
+
 import lombok.Data;
 
 @Data
@@ -13,4 +15,5 @@ public class SchoolResponse {
 	private String holidays;
 	private Long phoneNo;
 	private String emailId;
+	private LocalDate establishedAt;
 }

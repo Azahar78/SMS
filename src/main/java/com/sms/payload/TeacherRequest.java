@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class TeacherRequest {
 
-    private Integer schoolId;
+//    private Integer schoolId;
 	private String firstName;
 	private String lastName;
 	private String email;

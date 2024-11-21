@@ -55,7 +55,7 @@ public class StudentServiceImpl implements IStudentService{
 	public StudentResponse getStudent(Integer StudentId) throws Exception {
 		
 		Student student = studentRepo.findById(StudentId)
-		.orElseThrow(() -> new Exception(" School not found with " + StudentId));
+		.orElseThrow(() -> new Exception(" Student not found with " + StudentId));
 	       
 		StudentResponse studentResponse = new StudentResponse();
 		
@@ -65,6 +65,22 @@ public class StudentServiceImpl implements IStudentService{
 		studentResponse.setSchoolName(student.getSchool().getSchoolName());
 		
 		return studentResponse;
+	}
+
+	@Override
+	public Student getStudentById(Integer studentId) {
+		
+		Student student =new Student();
+		
+		try {
+			
+			student=studentRepo.findById(studentId)
+			.orElseThrow(()->new Exception("Student not found with : "+studentId));
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return student;
 	}
 
 }

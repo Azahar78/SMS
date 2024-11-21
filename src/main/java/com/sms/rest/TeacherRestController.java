@@ -1,5 +1,7 @@
 package com.sms.rest;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,16 +22,16 @@ public class TeacherRestController {
 	@Autowired
 	private ITeacherService teacherService;
 
-	@PostMapping("/post")
-	public ResponseEntity<?> enrollTeacher(@RequestBody TeacherRequest teacherRequest) {
+	@PostMapping("/post/{schoolId}")
+	public ResponseEntity<?> enrollTeacher(@RequestBody TeacherRequest teacherRequest,@PathVariable Integer schoolId ) {
 
 		ResponseEntity response = null;
 
 		try {
-			Boolean isRegisterTeacher = teacherService.registerTeacher(teacherRequest);
+			 TeacherResponse teacherResponse = teacherService.registerTeacher(teacherRequest,schoolId);
 
-			response = isRegisterTeacher ? ResponseEntity.ok("Teacher Registration Done..")
-					: ResponseEntity.internalServerError().body(" Something went wrong");
+			response = ResponseEntity.ok(teacherResponse);
+					
 
 		} catch (Exception e) {
 
@@ -60,5 +62,11 @@ public class TeacherRestController {
 		}
 		
 		return response;
+	}
+	
+	@GetMapping("/fetchAll")
+	public ResponseEntity<List<TeacherResponse>> fetchAllTeacher(){
+		List<TeacherResponse> allTeachers = teacherService.getAllTeachers();
+		return ResponseEntity.ok(allTeachers);
 	}
 }
