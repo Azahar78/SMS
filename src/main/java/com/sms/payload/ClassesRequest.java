@@ -5,7 +5,8 @@ import lombok.Data;
 @Data
 public class ClassesRequest {
 
-	    private String className;
-	    private Integer schoolId;
-	    private Integer teacherID;
+	    private String division;
+	    private String roomNo;
+	    private String studentCapacity;
+	    	 
 }

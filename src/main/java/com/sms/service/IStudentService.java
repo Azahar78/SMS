@@ -6,9 +6,11 @@ import com.sms.payload.StudentResponse;
 
 public interface IStudentService {
 
-	Boolean registerStudent(StudentRequest studentRequest) throws Exception;
+	StudentResponse registerStudent(StudentRequest studentRequest,String schoolCode,String studyClass) throws Exception;
 
 	StudentResponse getStudent(Integer StudentId) throws Exception;
 	
 	Student getStudentById(Integer studentId);
+	
+	
 }

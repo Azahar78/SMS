@@ -7,13 +7,15 @@ import lombok.Data;
 @Data
 public class StudentRequest {
 
-	private Integer schoolId;
+	
 	private String studentFirstName;
 	private String studentLastName;
+	private String gender;
 	private Long mobileNumber;
 	private LocalDate dateOfBirth;
 	private Long emergencyNumber;
-	private String parentEmail;
+	private String studentEmail;
 	private String studentAddress;
+	
 
 }

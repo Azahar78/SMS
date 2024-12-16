@@ -1,14 +1,24 @@
 package com.sms.service;
 
+import java.beans.Beans;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sms.entity.Classes;
 import com.sms.entity.School;
+import com.sms.entity.Subjects;
 import com.sms.entity.Teacher;
 import com.sms.payload.ClassesRequest;
 import com.sms.payload.ClassesResponse;
+import com.sms.payload.SchoolResponse;
+import com.sms.payload.SubjectResponse;
 import com.sms.repo.ClassesRepo;
 
 
@@ -23,57 +33,109 @@ public class ClassesServiceImpl implements IClassesService{
 	
 	@Autowired
 	private ITeacherService teacherService;
+
+	@Autowired
+	private ISubjectService subjectService;
+
+	//@Override
+	public Classes getClasById(Integer classId) {
+		
+			 Optional<Classes> classbyId = classesRepo.findById(classId);
+			
+			 if(classbyId.isPresent()) {
+				 
+				 return classbyId.get();
+			 }
 	
-	@Override
-	public Boolean addClasses(ClassesRequest classesRequest){
-		
-		Classes classes = new Classes();
-		
-		School school = schoolService.getSchoolById(classesRequest.getSchoolId());
-		Teacher teacher = teacherService.getTeacherById(classesRequest.getTeacherID());
-		
-		BeanUtils.copyProperties(classesRequest, classes);
-		
-		classes.setSchool(school);
-		classes.setTeacher(teacher);
-		
-		Classes classesSave = classesRepo.save(classes);
-		
-		return classesSave.getClassName()!=null;
+		return null;
 	}
 
+
+
 	@Override
-	public ClassesResponse getClass(Integer classId) {
+	public ClassesResponse addClasses(ClassesRequest classesRequest,String schoolCode,String studyClass) {
 		
+		boolean isMatch = setClass(schoolCode, studyClass);
+		Integer classNo = Integer.parseInt(studyClass.replaceAll("[^0-9]", ""));
+		String subjectCode = String.format("%03d", classNo);
 		ClassesResponse classesResponse = new ClassesResponse();
 		
-		Classes classes = getClasById(classId);
+		if(isMatch) {
+			
+			School school = schoolService.getSchoolByCode(schoolCode);
 		
-		BeanUtils.copyProperties(classes,classesResponse);
+		   	Set<Subjects> subjects = subjectService.getAllSubjectByCode(subjectCode)
+		    		            .stream().map(sub->sub).collect(Collectors.toSet());
+			Classes classes = new Classes();
+			
+			BeanUtils.copyProperties(classesRequest, classes);
+			
+			classes.setClassName(studyClass+" Div ["+classesRequest.getDivision()+"]");
+			classes.setSchool(school);
+			classes.setSubjects(subjects);
 		
-		classesResponse.setSchoolId(classes.getSchool().getSchoolId());
-		classesResponse.setSchoolName(classes.getSchool().getSchoolName());
-		classesResponse.setTeacherId(classes.getTeacher().getTeacherId());
-		classesResponse.setTeacherName(classes.getTeacher().getFirstName()+" "+classes.getTeacher().getLastName());
+			
+			Classes classesSave = classesRepo.save(classes);
+			
+			
+			
+			BeanUtils.copyProperties(classesSave, classesResponse);
+			
+			Set<SubjectResponse> subjectResponse = new HashSet<>();
+			
+			Set<Subjects> subjectList = classesSave.getSubjects();
+			
+			for(Subjects sublis:subjectList) {
+			
+				SubjectResponse subResponse = new SubjectResponse();
+				
+				subResponse.setSbujectCode(sublis.getSbujectCode());
+				subResponse.setSubjectId(sublis.getSubjectId());
+				subResponse.setSubjectName(sublis.getSubjectName());
+		
+				subjectResponse.add(subResponse);
+			}
+			classesResponse.setSchoolCode(classesSave.getSchool().getSchoolCode());
+			classesResponse.setSchoolName(classesSave.getSchool().getSchoolName());
+			classesResponse.setSubjects(subjectResponse);
+			classesResponse.setMessage("Class added..");
+		}
+		
+		else {
+			classesResponse.setMessage("Class Not Added Somthing went Wrong..");
+		}
 		
 		return classesResponse;
 	}
-
-	@Override
-	public Classes getClasById(Integer classId) {
+	
+	
+	private boolean setClass(String schoolCode,String studyClass){
 		
-		Classes classes = null;
+		boolean isValid =false;
 		
-		try {
-			
-			classes = classesRepo.findById(classId)
-					.orElseThrow(()->new Exception("Class not available with that : "+classId));
-			
-		} catch (Exception e) {
-		   e.printStackTrace();
+		 Integer classNo  = Integer.parseInt(studyClass.replaceAll("[^0-9]", ""));
+		
+		if (schoolCode.contains("PRI") && classNo < 5 ) { 
+			isValid =true;
 		}
 		
-		return classes;
+		else if (schoolCode.contains("SEC") && (classNo >= 5 && classNo <= 7)) {
+			isValid =true;
+		}
+		
+		else if (schoolCode.contains("HISE") && (classNo >= 8 && classNo <= 10)) {
+			isValid =true;
+		}
+		
+		return isValid;
+	}
+
+
+
+	@Override
+	public List<ClassesResponse> getAllClasses() {
+		List<Classes> classes = classesRepo.findAll();
+		return null;
 	}
 
 }

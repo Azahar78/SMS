@@ -1,9 +1,11 @@
 package com.sms.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,31 +18,75 @@ import com.sms.entity.Teacher;
 import com.sms.payload.ClassesResponse;
 import com.sms.payload.SchoolRequest;
 import com.sms.payload.SchoolResponse;
+import com.sms.payload.SchoolTypeResponse;
 import com.sms.payload.StudentResponse;
 import com.sms.payload.TeacherResponse;
 import com.sms.repo.SchoolRepo;
+import com.sms.utils.HelperUtils;
 
 @Service
 public class SchoolSerivceImpl implements ISchoolService {
 
 	@Autowired
 	private SchoolRepo schoolRepo;
+	
+	@Autowired
+	private HelperUtils helperUtils;
 
 	@Override
-	public SchoolResponse enrollSchool(SchoolRequest schoolRequest) {
+	public SchoolResponse enrollSchool(SchoolRequest schoolRequest, String type) {
 
 		School school = new School();
+		
+		Optional<School> lastSchool = schoolRepo.findTopByOrderByCreatedAtDesc();
+		
+		Integer schoolId = 1;
+        
+		if(lastSchool.isPresent()) {
+			schoolId= lastSchool.get().getSchoolId()+schoolId;
+		}else {
+			schoolId=1;
+		}
+		
+		LocalDateTime createdAt = LocalDateTime.now();
+		
+		
 
 		BeanUtils.copyProperties(schoolRequest, school);
 
-		if (schoolRequest.getEstablishedAt() != null) {
-			LocalDate establishedAt = LocalDate.parse(schoolRequest.getEstablishedAt() + "",
-					DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		// school.setSchoolName(schoolRequest.getSchoolName());
 
-			school.setEstablishedAt(establishedAt);
+		if (schoolRequest.getEstablishedAt() != null) {
+			
+			LocalDate dateFormate = helperUtils.dateFormate(schoolRequest.getEstablishedAt()+"");
+
+			school.setEstablishedAt(dateFormate);
 
 		}
+		else {
+			school.setEstablishedAt(createdAt.toLocalDate());
+		}
 
+		
+		SchoolTypeResponse schoolType = helperUtils.getSchoolType(type);
+		
+		String prefix = schoolType.getSchoolCode();
+		
+		school.setSchoolId(schoolId);
+		school.setSchoolHours(schoolType.getSchoolHours());
+		school.setHolidays(schoolType.getHolidays());
+		
+        String sufix = school.getSchoolName().substring(0, 4).toUpperCase();
+
+		String date = createdAt.getYear()+"";
+		
+		String formattedSchoolId = String.format("%04d", schoolId);
+
+
+		school.setSchoolCode(prefix+formattedSchoolId+"-"+sufix+"-"+date);
+
+		school.setCreatedAt(createdAt);
+		
 		System.out.println(school);
 
 		School schooln = schoolRepo.save(school);
@@ -48,6 +94,8 @@ public class SchoolSerivceImpl implements ISchoolService {
 		SchoolResponse schoolResponse = new SchoolResponse();
 
 		BeanUtils.copyProperties(schooln, schoolResponse);
+		
+		schoolResponse.setCreatedAt(createdAt.toLocalDate()+"");
 
 		return schoolResponse;
 	}
@@ -84,7 +132,8 @@ public class SchoolSerivceImpl implements ISchoolService {
 			SchoolResponse schoolResponse = new SchoolResponse();
 
 			BeanUtils.copyProperties(all, schoolResponse);
-
+					
+			schoolResponse.setCreatedAt(all.getCreatedAt().toLocalDate()+"");
 			schoolResonseList.add(schoolResponse);
 
 		}
@@ -109,6 +158,9 @@ public class SchoolSerivceImpl implements ISchoolService {
 		return school;
 	}
 
+	
+	
+	
 	@Override
 	public List<TeacherResponse> allteacherBySchoolId(Integer schoolId) {
 		List<Teacher> teacher = schoolRepo.findTeachersBySchoolId(schoolId);
@@ -153,7 +205,7 @@ public class SchoolSerivceImpl implements ISchoolService {
 
 		return studentResponses;
 	}
-
+/*
 	@Override
 	public List<ClassesResponse> alltClassesBySchoolId(Integer schoolId) {
 
@@ -166,56 +218,64 @@ public class SchoolSerivceImpl implements ISchoolService {
 			ClassesResponse clsResponse = new ClassesResponse();
 
 			BeanUtils.copyProperties(cls, clsResponse);
-			
+
 			clsResponse.setSchoolId(cls.getSchool().getSchoolId());
 			clsResponse.setSchoolName(cls.getSchool().getSchoolName());
 			clsResponse.setTeacherId(cls.getTeacher().getTeacherId());
-			clsResponse.setTeacherName(cls.getTeacher().getFirstName()+" "+cls.getTeacher().getFirstName());
-		    
-		    classesResponse.add(clsResponse);
+			clsResponse.setTeacherName(cls.getTeacher().getFirstName() + " " + cls.getTeacher().getFirstName());
+
+			classesResponse.add(clsResponse);
 
 		});
 		return classesResponse;
 	}
+	*/
 
-	/*
-	 * @Override public List<Object> searchSchoolResult(Integer schoolId, String
-	 * type) {
-	 * 
-	 * List<Object> responseObject =null;
-	 * 
-	 * switch (type) {
-	 * 
-	 * case "student": {
-	 * 
-	 * 
-	 * 
-	 * responseObject = new ArrayList<>();
-	 * 
-	 * break; }
-	 * 
-	 * case "teacher": {
-	 * 
-	 * List<TeacherResponse> teacherResponse = allteacherBySchoolId(schoolId);
-	 * 
-	 * responseObject = new ArrayList<>(teacherResponse); break; }
-	 * 
-	 * case "classes":{
-	 * 
-	 * }
-	 * 
-	 * default: throw new IllegalArgumentException("Unexpected value: " + type); }
-	 * 
-	 * return responseObject; }
-	 * 
-	 */
+	@Override
+	public SchoolResponse fetchSchoolByCode(String schoolCode) {
+		
+		SchoolResponse schoolResponse = new SchoolResponse();
+		
+		try {
+			
+		  School school= schoolRepo.findBySchoolCode(schoolCode).orElseThrow(()->new Exception(" School not found "));
+			
+		  BeanUtils.copyProperties(school,schoolResponse);
+		  schoolResponse.setMessage("School found : "+school.getSchoolCode());
+		  schoolResponse.setCreatedAt(school.getCreatedAt()+"");
+		  
+		} catch (Exception e) {
+		    System.out.println("Something went wrong..");
+		    schoolResponse.setMessage(" School Not Found : "+schoolCode);
+		    e.printStackTrace();
+		    
+		}
+	
+		return schoolResponse;
+	}
+	
+	
+	@Override
+	public School getSchoolByCode(String schoolCode) {
+		
+		School school = null;
+		
+		try {
+			
+		   school= schoolRepo.findBySchoolCode(schoolCode).orElseThrow(()->new Exception(" School not found "));
+
+		  
+		} catch (Exception e) {
+		    System.out.println("Something went wrong..");
+		    e.printStackTrace();
+		    
+		}
+	
+		return school;
+	}
+	
+	
+	
+	
+
 }
-
-/*
- * school.setSchoolName(schoolRequest.getSchoolName());
- * school.setSchoolAddress(schoolRequest.getSchoolAddress());
- * school.setSchoolHours(schoolRequest.getSchoolHours());
- * school.setHolidays(schoolRequest.getHolidays());
- * school.setPhoneNo(schoolRequest.getPhoneNo());
- * school.setEmailId(schoolRequest.getEmailId());
- */

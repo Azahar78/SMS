@@ -1,6 +1,7 @@
 package com.sms.payload;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.Data;
 
@@ -11,9 +12,12 @@ public class TeacherRequest {
 	private String firstName;
 	private String lastName;
 	private String email;
+	private LocalDate dateOfBirth;
 	private LocalDate dateOfJoin;
 	private String address;
-	private Long mobile;
-	private Double salary;
+	private Long mobileNo;
+	
+	private List<String> subjectSpecialization;
+	
 	
 }

@@ -7,14 +7,23 @@ import lombok.Data;
 @Data
 public class StudentResponse {
 
+	private String message;
 	private Integer schoolId;
+	private String schoolCode;
 	private String schoolName;
-	private String studentFirstName;
-	private String studentLastName;
+	private Integer studentId;
+	private String studentFullName;
 	private Long mobileNumber;
 	private LocalDate dateOfBirth;
 	private Long emergencyNumber;
-	private String parentEmail;
+	private String gender;
 	private String studentAddress;
+	private String studentEmail;
+	private String studyClass;
+	private String registrationId;
+	private String registrationDateTime;
+	
+	
+
 	
 }

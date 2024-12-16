@@ -11,7 +11,7 @@ import com.sms.payload.TeacherResponse;
 
 public interface ISchoolService {
 
-	SchoolResponse enrollSchool(SchoolRequest schoolRequest);
+	SchoolResponse enrollSchool(SchoolRequest schoolRequest,String type);
 	
 	SchoolResponse getSchool(Integer schoolId) throws Exception;
 	
@@ -23,7 +23,11 @@ public interface ISchoolService {
 	
 	List<StudentResponse> allStudentsBySchoolId(Integer schoolId);
 	
-	List<ClassesResponse> alltClassesBySchoolId(Integer schoolId);
+	//List<ClassesResponse> alltClassesBySchoolId(Integer schoolId);
+	
+	SchoolResponse fetchSchoolByCode(String schoolCode);
+	
+	School getSchoolByCode(String schoolCode);
 	
 	// List<Object> searchSchoolResult(Integer schoolId,String type);
 }

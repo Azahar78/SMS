@@ -6,9 +6,10 @@ import lombok.Data;
 
 @Data
 public class SchoolResponse {
-
-	
+    
+	private String message;
 	private Integer schoolId;
+	private String schoolCode;
 	private String schoolName;
 	private String SchoolAddress;
 	private String schoolHours;
@@ -16,4 +17,6 @@ public class SchoolResponse {
 	private Long phoneNo;
 	private String emailId;
 	private LocalDate establishedAt;
+	private String createdAt;
+
 }
